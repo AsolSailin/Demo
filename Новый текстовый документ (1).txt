@@ -1,0 +1,10 @@
+User (Surname, Name, Patronymic, Login, Password, Role_Id)
+Request (AddDate, ProblemDescription, Model_Id, Status_Id, Master_Id, Client_Id, Priority_Id)
+RequestReport (SpentTime, Description, Request_Id)
+Comment (Content, User_Id, Request_Id)
+Model (Title, EqupmentType_Id)
+Priority (Title, Value)
+EqupmentType / Status / Role (Title)
+
+
+ 
