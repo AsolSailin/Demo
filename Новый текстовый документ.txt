@@ -1,0 +1,108 @@
+Навигация:
+1. public class NavComponentsClass{
+        public Page Page { get; set; }
+        public NavComponentsClass(Page page){
+            Page = page;}}
+2. public class NavClass{
+   	public static bool isAuth = false;
+   	public static bool isRed = false;
+   	public static MainWindow main;
+   	public static List<NavComponentsClass> navs = new List<NavComponentsClass>();
+   	private static void Update(NavComponentsClass nav){
+   		main.MainFrame.Navigate(nav.Page);}
+        public static void NextPage(NavComponentsClass nav){
+            navs.Add(nav);
+            Update(nav);}
+        public static void BackPage(){
+            if (navs.Count > 1){
+                navs.Remove(navs[navs.Count - 1]);
+                Update(navs[navs.Count - 1]);}}}
+3. NavClass.main = this;
+   NavClass.NextPage(new NavComponentsClass(new CatalogPage()));
+
+Main:
+<Grid.ColumnDefinitions><ColumnDefinition Width="20*"/><ColumnDefinition Width="30*"/><ColumnDefinition Width="139*"/><ColumnDefinition Width="30*"/></Grid.ColumnDefinitions>
+<Grid.RowDefinitions><RowDefinition Height="70*"/><RowDefinition Height="395*"/></Grid.RowDefinitions>
+<Rectangle Grid.ColumnSpan="4"></Rectangle>
+<Button x:Name="btnAcc" Grid.Column="0" Height="45" Width="45" Click="AccBtn_Click">
+	<Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="20"/></Style></Button.Resources>       
+	<Button.Template><ControlTemplate><Image Source="\Images\Account.png"/></ControlTemplate></Button.Template>
+</Button>
+<Button x:Name="btnExit" Grid.Column="3" Height="30" Width="100" Click="BackBtn_Click">
+	<Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="20"/></Style></Button.Resources>
+</Button>
+<Frame x:Name="MainFrame" NavigationUIVisibility="Hidden" Grid.RowSpan="2" Grid.ColumnSpan="4" Margin="0,65,0,0"/>
+
+Дизайн (App.xaml):
+<Application.Resources>
+	<Style TargetType="TextBox">
+            <Setter Property="FontFamily" Value="Arial Black"/>
+            <Setter Property="Background" Value="#f3e9f7"/>
+            <Setter Property="Foreground" Value="#FF5C176B"/>
+        </Style>
+        <SolidColorBrush x:Key="PrimaryColor" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="SecondaryColor" Color="#CEFFF9"/>
+        <SolidColorBrush x:Key="FocusColor" Color="#00CC76"/>
+</Application.Resources>
+
+App.xaml.cs:
+public static MonkeyShopEntities Connection = new MonkeyShopEntities();
+public static User CurrentUser;
+public static bool isAuth = false;
+
+ComboBox:
+<ComboBox x:Name="cbFilter" Margin="0, 0, 5, 0" Width="130" Height="30" VerticalContentAlignment="Center" SelectionChanged="FilteringSelect">
+	<ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Title}"/></DataTemplate></ComboBox.ItemTemplate>
+</ComboBox>
+
+List:
+<ScrollViewer Grid.Row="1" Grid.Column="1" >
+	<StackPanel>
+		<ListView x:Name="lvProductList" d:ItemsSource="{d:SampleData ItemCount=6}" SelectionChanged="ProductList_SelectionChanged">
+                    <ListView.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="3"></UniformGrid></ItemsPanelTemplate></ListView.ItemsPanel>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center" Height="261" Width="186"><TextBlock FontSize="15" Text="{Binding Name}" ></TextBlock><TextBlock FontSize="15" Text="{Binding Count, StringFormat={}Количество: {0}}" ></TextBlock></StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+	</StackPanel>
+</ScrollViewer>
+
+MessageBox:
+1. if (MessageBox.Show("Вы действительно хотите убрать товар из корзины?", "",MessageBoxButton.YesNo,MessageBoxImage.Question) == MessageBoxResult.Yes) App.Connection.Basket.Remove(basket);
+2. MessageBox.Show(ex.ToString(), "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+3. MessageBox.Show("Регистрация прошла успешно!");
+
+Картинка в partial class:
+public BitmapImage ProductImage{
+	`get{
+		var bitmap = new BitmapImage();
+                byte[] bytes;
+                if (Image == null || Image == "")
+                    bytes = File.ReadAllBytes(Directory.GetParent(Environment.CurrentDirectory).Parent.FullName + $"\\Images\\picture.png");
+                else
+                    bytes = File.ReadAllBytes(Directory.GetParent(Environment.CurrentDirectory).Parent.FullName + $"\\Images{Image}");
+                var ms = new MemoryStream(bytes);
+                bitmap.BeginInit();
+                bitmap.StreamSource = ms;
+                bitmap.EndInit();
+                return bitmap;}}
+
+Поиск:
+try{
+	Table.ItemsSource = Entities1.GetContext().Ready_product.Where(item => item.Name == Naity.Text || item.Name.Contains(Naity.Text)).ToList();}
+	//lvProductList.ItemsSource = _sorted.Where(x => string.Join(" ", x.Title).ToLower().Contains(tboxSearch.Text.ToLower())).ToList();
+catch (Exception ex){
+	MessageBox.Show(ex.ToString(), "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);}
+
+Авторизация:
+if (tboxLogin.Text != "" && pboxPassword.Password != ""){
+	var data = App.Connection.Account.Where(x => x.Password == pboxPassword.Password && 
+	x.Login == tboxLogin.Text).FirstOrDefault();
+	if (data != null){
+		App.CurrentAccount = data;
+		App.CurrentUser = App.Connection.User.Where(x => x.Id == data.User_Id).FirstOrDefault();
+		switch (App.CurrentUser.Role.Title){case "": break;}}
+	else{MessageBox.Show("Пользователь не найден!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);}}
+else{MessageBox.Show("Для входа в систему все поля должны быть заполнены!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);}
